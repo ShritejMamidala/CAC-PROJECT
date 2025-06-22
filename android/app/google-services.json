@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "199094548248",
+    "project_id": "cac-project-blind",
+    "storage_bucket": "cac-project-blind.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199094548248:android:cf71de3f51546ea41e506d",
+        "android_client_info": {
+          "package_name": "com.CAC_PROJECT.blind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNs8d2twYjutykm3fbDQkncRiR7cvhnyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
