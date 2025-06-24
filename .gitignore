@@ -1,0 +1,10 @@
+# Flutter
+build/
+.dart_tool/
+.packages
+
+# Firebase Functions
+functions/node_modules/
+
+# Secrets
+.env
