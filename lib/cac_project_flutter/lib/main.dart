@@ -1,122 +1,322 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
-void main() {
-  runApp(const MyApp());
-}
+// bring in the rest of your app
+import 'app_gate.dart';
+import 'auth/blind_user_login.dart';
+import 'auth/blind_user_signup.dart';
+import 'auth/guardian_user_login.dart';
+import 'auth/guardian_user_signup.dart';
+import 'blind/blind_shell.dart';
+import 'guardian/guardian_shell.dart';
+import 'services/auth_service.dart';
+
+
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    const deepPurple = Color.fromARGB(255, 99, 99, 99);
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        colorScheme: const ColorScheme.dark().copyWith(
+          primary: deepPurple,
+          surface: deepPurple,
+        ),
+        scaffoldBackgroundColor: deepPurple,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(), // ← app starts here
+      routes: {
+      '/appgate': (_) => const AppGate(),   // 👈 add this
+      '/auth/blind/login': (_) => const BlindLoginPage(),
+      '/auth/blind/signup': (_) => const BlindSignupPage(),
+      '/auth/guardian/login': (_) => const GuardianLoginPage(),
+      '/auth/guardian/signup': (_) => const GuardianSignupPage(),
+      '/blind': (_) => const BlindShell(),
+      '/guardian': (_) => const GuardianShell(),
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+/// -------------------------
+/// Fancy animated HomePage
+/// -------------------------
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final size = MediaQuery.of(context).size;
+    final w = size.width;
+    final h = size.height;
+
+    final sidePadding = w * 0.08;
+    final verticalGap = h * 0.02;
+    final bigGap = h * 0.04;
+    final buttonHeight = h * 0.11;
+    final radius = w * 0.06;
+    final titleSize = w * 0.08;
+    final labelSize = w * 0.05;
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Stack(
+        children: [
+          // animated background
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (_, __) => CustomPaint(
+                painter: _HexMeshPainter(
+                  progress: _controller.value,
+                  color: Colors.white.withOpacity(0.07),
+                ),
+              ),
             ),
-          ],
+          ),
+
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: sidePadding),
+              child: Column(
+                children: [
+                  SizedBox(height: bigGap * 4),
+                  Center(
+                    child: ShaderMask(
+                      shaderCallback: (bounds) =>
+                          const LinearGradient(colors: [
+                        Colors.white,
+                        Colors.white,
+                      ]).createShader(bounds),
+                      child: Text(
+                        'BLINDSIDE',
+                        style: TextStyle(
+                          fontSize: titleSize.clamp(60, 80),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 4,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _ModeButton(
+                          label: 'Blind Mode',
+                          color: const Color(0xFF0A2E5C),
+                          height: buttonHeight,
+                          radius: radius,
+                          icon: Icons.visibility_off_rounded,
+                          labelSize: labelSize * 8,
+                          onPressed: () {
+                          final user = AuthService.instance.currentUser;
+                          if (user == null) {
+                            Navigator.pushNamed(context, '/auth/blind/login');
+                          } else {
+                            final route = user.role == UserRole.blind ? '/blind' : '/guardian';
+                            Navigator.pushNamed(context, route);
+                          }
+                        },
+                          semanticsLabel: 'Enter Blind Mode',
+                        ),
+                        SizedBox(height: verticalGap * 4),
+                        _ModeButton(
+                          label: 'Guardian Mode',
+                          color: const Color(0xFF1C3B2D),
+                          height: buttonHeight,
+                          radius: radius,
+                          icon: Icons.supervisor_account_rounded,
+                          labelSize: labelSize * 8,
+                          onPressed: () {
+                          final user = AuthService.instance.currentUser;
+                          if (user == null) {
+                            Navigator.pushNamed(context, '/auth/guardian/login');
+                          } else {
+                            final route = user.role == UserRole.blind ? '/blind' : '/guardian';
+                            Navigator.pushNamed(context, route);
+                          }
+                        },
+                          semanticsLabel: 'Enter Guardian Mode',
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      // TODO: settings
+                    },
+                    child: const Text('Settings'),
+                  ),
+                  SizedBox(height: verticalGap),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final double height;
+  final double radius;
+  final IconData icon;
+  final double labelSize;
+  final VoidCallback onPressed;
+  final String semanticsLabel;
+  const _ModeButton({
+    required this.label,
+    required this.color,
+    required this.height,
+    required this.radius,
+    required this.icon,
+    required this.labelSize,
+    required this.onPressed,
+    required this.semanticsLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        padding: EdgeInsets.symmetric(
+          vertical: height * 0.18,
+          horizontal: w * 0.06,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: (labelSize * 1.2).clamp(20, 28)),
+          SizedBox(width: w * 0.02),
+          Flexible(
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: labelSize.clamp(16, 24),
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _HexMeshPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  _HexMeshPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradientPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF000000), Color(0xFF0B0B0D), Color(0xFF101418)],
+        stops: [0.0, 0.3, 0.7],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(rect);
+    canvas.drawRect(rect, gradientPaint);
+
+    void drawWave(
+        {required double baseY,
+        required double amplitude,
+        required double frequency,
+        required double phaseShift,
+        required double thickness,
+        required double opacity,
+        required double speed}) {
+      final path = Path();
+      final paint = Paint()
+        ..color = color.withOpacity(opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = thickness;
+
+      final phase = (progress * 2 * math.pi * speed) + phaseShift;
+      final h = size.height;
+      final w = size.width;
+
+      double y(double x) =>
+          baseY * h +
+          math.sin((x / w) * 2 * math.pi * frequency + phase) * (amplitude * h);
+
+      const step = 8.0;
+      path.moveTo(0, y(0));
+      for (double x = step; x <= w; x += step) {
+        path.lineTo(x, y(x));
+      }
+      canvas.drawPath(path, paint);
+    }
+
+    drawWave(
+        baseY: 0.30,
+        amplitude: 0.06,
+        frequency: 1.2,
+        phaseShift: 0,
+        thickness: 1.5,
+        opacity: 0.1,
+        speed: 0.8);
+
+    drawWave(
+        baseY: 0.55,
+        amplitude: 0.05,
+        frequency: 0.9,
+        phaseShift: math.pi / 2,
+        thickness: 1.2,
+        opacity: 0.07,
+        speed: 1.0);
+
+    drawWave(
+        baseY: 0.78,
+        amplitude: 0.04,
+        frequency: 1.4,
+        phaseShift: math.pi,
+        thickness: 1.0,
+        opacity: 0.05,
+        speed: 1.25);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HexMeshPainter old) =>
+      old.progress != progress || old.color != color;
 }
