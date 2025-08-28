@@ -23,7 +23,10 @@ class _BlindShellState extends State<BlindShell> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => AuthService.instance.signOut(),
+            onPressed: () {
+  AuthService.instance.signOut();
+  Navigator.pushReplacementNamed(context, '/');
+},
           )
         ],
       ),

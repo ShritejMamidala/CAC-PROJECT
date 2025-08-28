@@ -5,14 +5,19 @@ import 'dart:math' as math;
 import 'app_gate.dart';
 import 'auth/blind_user_login.dart';
 import 'auth/blind_user_signup.dart';
-import 'auth/guardian_user_login.dart';
-import 'auth/guardian_user_signup.dart';
+import 'auth/guardian_user_one_time_code.dart';
 import 'blind/blind_shell.dart';
 import 'guardian/guardian_shell.dart';
 import 'services/auth_service.dart';
 
 
-void main() => runApp(const MyApp());
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -36,8 +41,7 @@ class MyApp extends StatelessWidget {
       '/appgate': (_) => const AppGate(),   // 👈 add this
       '/auth/blind/login': (_) => const BlindLoginPage(),
       '/auth/blind/signup': (_) => const BlindSignupPage(),
-      '/auth/guardian/login': (_) => const GuardianLoginPage(),
-      '/auth/guardian/signup': (_) => const GuardianSignupPage(),
+      '/auth/guardian/one_time_code': (_) => const GuardianUserOneTimeCodePage(),
       '/blind': (_) => const BlindShell(),
       '/guardian': (_) => const GuardianShell(),
       },
@@ -160,7 +164,7 @@ class _HomePageState extends State<HomePage>
                           onPressed: () {
                           final user = AuthService.instance.currentUser;
                           if (user == null) {
-                            Navigator.pushNamed(context, '/auth/guardian/login');
+                            Navigator.pushNamed(context, '/auth/guardian/one_time_code');
                           } else {
                             final route = user.role == UserRole.blind ? '/blind' : '/guardian';
                             Navigator.pushNamed(context, route);
