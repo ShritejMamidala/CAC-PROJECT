@@ -1,5 +1,6 @@
 // lib/services/auth_service.dart
 import 'dart:async';
+import 'dart:math'; // <- add for code generation
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -22,7 +23,7 @@ class AuthService {
   AppUser? _currentUser;
   AppUser? get currentUser => _currentUser;
 
-  // Ensure a user profile doc exists (auto-heal if signup write failed).
+  // ------------ helper: ensure user doc exists ------------
   Future<void> _ensureUserDoc(User fbUser) async {
     final ref = _db.collection('users').doc(fbUser.uid);
     final snap = await ref.get();
@@ -36,7 +37,7 @@ class AuthService {
     }
   }
 
-  // Map Firebase user -> AppUser by reading the user doc.
+  // ------------ auth state -> AppUser ------------
   Stream<AppUser?> get authStateChanges =>
       _auth.authStateChanges().asyncMap((fbUser) async {
         if (fbUser == null) {
@@ -53,44 +54,79 @@ class AuthService {
         return _currentUser;
       });
 
-  /// Create a Firebase Auth user and a matching Firestore profile.
-Future<String> signUpBlind({
-  required String email,
-  required String password,
-  String? firstName,
-  String? lastName,
-  String? phone,
-  DateTime? birthDate,
-}) async {
-  final cred = await _auth.createUserWithEmailAndPassword(
-    email: email,
-    password: password,
-  );
-  final uid = cred.user!.uid;
-
-  try {
-    print('🔥 Attempting Firestore write for $uid');
-
-    await _db.collection('users').doc(uid).set({
-      'role': 'blind',
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'phone': phone,
-      'birthDate': birthDate,
-      'otcVerified': false,
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    print('✅ Firestore user profile written for $uid');
-  } on FirebaseException catch (e) {
-    print('❌ Firestore write failed: ${e.code} - ${e.message}');
-    throw Exception('Firestore write failed: ${e.code} ${e.message}');
+  // ------------ guardian pairing code helpers ------------
+  String _generate6Digit() {
+    final r = Random();
+    // 000000..999999 padded to 6 digits
+    return (r.nextInt(1000000)).toString().padLeft(6, '0');
   }
 
-  return uid;
-}
+  /// Generates a code and stores it in guardian_codes/{blindUid}.
+  /// For demo simplicity, we don't guarantee global uniqueness; it's OK.
+  Future<String> _createGuardianCodeForBlind(String blindUid) async {
+    final code = _generate6Digit();
+    await _db.collection('guardian_codes').doc(blindUid).set({
+      'blindUid': blindUid,
+      'code': code,
+      'createdAt': FieldValue.serverTimestamp(),
+      'active': true, // future-friendly if you want to rotate
+    }, SetOptions(merge: true));
+    return code;
+  }
 
+  /// Resolve a blindUid from a guardian code (for Guardian Mode UI).
+  /// Returns the blindUid if found, else null.
+  Future<String?> resolveBlindUidByGuardianCode(String inputCode) async {
+    final q = await _db
+        .collection('guardian_codes')
+        .where('code', isEqualTo: inputCode)
+        .where('active', isEqualTo: true)
+        .limit(1)
+        .get();
+    if (q.docs.isEmpty) return null;
+    return (q.docs.first.data()['blindUid'] as String?);
+  }
+
+  // ------------ signup ------------
+  Future<String> signUpBlind({
+    required String email,
+    required String password,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    DateTime? birthDate,
+  }) async {
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final uid = cred.user!.uid;
+
+    try {
+      // user profile
+      await _db.collection('users').doc(uid).set({
+        'role': 'blind',
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phone': phone,
+        'birthDate': birthDate,
+        'otcVerified': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // persistent guardian pairing code in a separate collection
+      final code = await _createGuardianCodeForBlind(uid);
+      // (Optional) print/log for demo visibility:
+      // print('👥 Guardian code for $uid is $code');
+    } on FirebaseException catch (e) {
+      throw Exception('Firestore write failed: ${e.code} ${e.message}');
+    }
+
+    return uid;
+  }
+
+  // ------------ sign in / out ------------
   Future<void> signInBlind({
     required String email,
     required String password,
@@ -100,8 +136,8 @@ Future<String> signUpBlind({
 
   Future<void> signOut() => _auth.signOut();
 
-  // Guardian bits (stub until OTC is wired).
-  Future<bool> verifyGuardianOneTimeCode(String code) async => true;
+  // Guardian bits (UI can call resolveBlindUidByGuardianCode and then navigate)
+  Future<bool> verifyGuardianOneTimeCode(String code) async => true; // unused now
   bool get isGuardian => _currentUser?.role == UserRole.guardian;
   bool get guardianVerified => _currentUser?.otcVerified ?? false;
 }
