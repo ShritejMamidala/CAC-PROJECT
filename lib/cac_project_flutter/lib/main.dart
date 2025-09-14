@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-// bring in the rest of your app
+// bring in the rest of app
 import 'app_gate.dart';
 import 'auth/blind_user_login.dart';
 import 'auth/blind_user_signup.dart';
