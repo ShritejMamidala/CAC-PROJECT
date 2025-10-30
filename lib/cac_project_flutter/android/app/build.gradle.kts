@@ -12,9 +12,7 @@ android {
     namespace = "com.example.cac_project_flutter"
     compileSdk = flutter.compileSdkVersion
 
-    // 👇 Replace this line…
-    // ndkVersion = flutter.ndkVersion
-    // 👇 …with this exact version:
+    // 👇 Use a fixed NDK version that works
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -26,7 +24,7 @@ android {
     }
     defaultConfig {
         applicationId = "com.CAC_PROJECT.blind"  // MUST match google-services.json
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -40,4 +38,11 @@ android {
 
 flutter {
     source = "../.."
+}
+configurations.implementation {
+    exclude(group = "com.google.android.gms", module = "play-services-maps")
+}
+dependencies {
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 }

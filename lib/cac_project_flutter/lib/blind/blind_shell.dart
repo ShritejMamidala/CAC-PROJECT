@@ -13,7 +13,20 @@ class BlindShell extends StatefulWidget {
 
 class _BlindShellState extends State<BlindShell> {
   int _index = 0;
-  final _pages = const [BlindMainPage(), BlindGPSPage(), BlindCameraPage()];
+
+  // For BlindShell (Navigator)
+  static const _livekitUrl = 'wss://blindside-jvsn35ln.livekit.cloud';
+  static const _navigatorToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6ImJsaW5kc2lkZS1yb29tIiwiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZX0sInN1YiI6ImJsaW5kLXVzZXIiLCJpc3MiOiJBUElDSkVZQllZeEJwUUQiLCJuYmYiOjE3NjE3ODYwODAsImV4cCI6MTc2MTgwNzY4MH0.1Aaqvn-LtKBe7yQmSPaXRqw3D8BhvtBKQrfelZnSYKA';
+
+  late final _pages = [
+    const BlindMainPage(),
+    const BlindGPSPage(),
+    BlindCameraPage(
+      livekitUrl: _livekitUrl,
+      navigatorToken: _navigatorToken,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +37,10 @@ class _BlindShellState extends State<BlindShell> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-  AuthService.instance.signOut();
-  Navigator.pushReplacementNamed(context, '/');
-},
-          )
+              AuthService.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/');
+            },
+          ),
         ],
       ),
       body: IndexedStack(index: _index, children: _pages),

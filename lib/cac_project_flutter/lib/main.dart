@@ -114,23 +114,31 @@ class _HomePageState extends State<HomePage>
                 children: [
                   SizedBox(height: bigGap * 4),
                   Center(
-                    child: ShaderMask(
-                      shaderCallback: (bounds) =>
-                          const LinearGradient(colors: [
-                        Colors.white,
-                        Colors.white,
-                      ]).createShader(bounds),
-                      child: Text(
-                        'BLINDSIDE',
-                        style: TextStyle(
-                          fontSize: titleSize.clamp(60, 80),
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 4,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
+  child: Text(
+    'BLINDSIDE',
+    textAlign: TextAlign.center,
+    style: TextStyle(
+      fontSize: titleSize.clamp(100, 300),
+      fontWeight: FontWeight.w900,
+      color: Colors.white,
+      letterSpacing: 6,
+      height: 1.1,
+      shadows: [
+        Shadow(
+          blurRadius: 20,
+          color: Colors.white.withOpacity(0.5),
+          offset: const Offset(0, 0),
+        ),
+        Shadow(
+          blurRadius: 40,
+          color: Colors.white.withOpacity(0.25),
+          offset: const Offset(0, 0),
+        ),
+      ],
+    ),
+  ),
+),
+
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

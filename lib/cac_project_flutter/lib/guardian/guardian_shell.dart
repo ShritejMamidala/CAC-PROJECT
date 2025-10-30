@@ -12,7 +12,19 @@ class GuardianShell extends StatefulWidget {
 
 class _GuardianShellState extends State<GuardianShell> {
   int _index = 0;
-  final _pages = const [GuardianMainPage(), GuardianWatchingPage()];
+
+  // For GuardianShell (Guardian)
+  static const _livekitUrl = 'wss://blindside-jvsn35ln.livekit.cloud';
+  static const _guardianToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6ImJsaW5kc2lkZS1yb29tIiwiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZX0sInN1YiI6Imd1YXJkaWFuLXVzZXIiLCJpc3MiOiJBUElDSkVZQllZeEJwUUQiLCJuYmYiOjE3NjE3OTc4MDAsImV4cCI6MTc2MTgxOTQwMH0.-184sFzmGZSG2m4tf4JF52ZC9WuooP4uDGDIzBCL7jE';
+  
+  late final _pages = [
+    const GuardianMainPage(),
+    GuardianWatchingPage(
+      livekitUrl: _livekitUrl,
+      guardianToken: _guardianToken,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +34,11 @@ class _GuardianShellState extends State<GuardianShell> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => AuthService.instance.signOut(),
-          )
+            onPressed: () {
+              AuthService.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/');
+            },
+          ),
         ],
       ),
       body: IndexedStack(index: _index, children: _pages),
@@ -33,7 +48,9 @@ class _GuardianShellState extends State<GuardianShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home), label: 'Main'),
           NavigationDestination(
-              icon: Icon(Icons.remove_red_eye), label: 'Watching'),
+            icon: Icon(Icons.remove_red_eye),
+            label: 'Watching',
+          ),
         ],
       ),
     );

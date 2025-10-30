@@ -185,7 +185,7 @@ Future<void> _register() async {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _day,
+                        initialValue: _day,
                         items: _days
                             .map((d) => DropdownMenuItem(
                                   value: d,
@@ -202,7 +202,7 @@ Future<void> _register() async {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _month,
+                        initialValue: _month,
                         items: List<DropdownMenuItem<int>>.generate(
                           _months.length,
                           (i) => DropdownMenuItem(
@@ -220,7 +220,7 @@ Future<void> _register() async {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _year,
+                        initialValue: _year,
                         items: _years
                             .map((y) => DropdownMenuItem(
                                   value: y,
